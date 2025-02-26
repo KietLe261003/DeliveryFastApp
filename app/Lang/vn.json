@@ -1,0 +1,14 @@
+{
+    "translation": {
+        "profile": "Trang cá nhân",
+        "logout": "Đăng xuất",
+        "register_link": "Bạn chưa có tài khoản",
+        "forgot_password": "Bạn quên mật khẩu",
+        "login_title": "Đăng nhập",
+        "email_placeholder": "Nhập email của bạn",
+        "password_placeholder": "Nhập mật khẩu của bạn",
+        "loading_button": "...",
+        "login_button": "Đăng nhập",
+        "signup": "Đăng ký"
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "translation": {
+        "profile": "Profile",
+        "logout": "Logout",
+        "register_link": "Do you have an account?",
+        "forgot_password": "Do you forgot password",
+        "login_title": "Login",
+        "email_placeholder": "Enter your email",
+        "password_placeholder": "Enter your password",
+        "login_button": "Login",
+        "signup": "Register"
+    }
+}

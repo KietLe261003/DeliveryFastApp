@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }:AuthProviderProps) => {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   return (
-    <AuthContext.Provider value={{ user, token, isLoading }}>
+    <AuthContext.Provider value={{ user, token, isLoading, setIsLoading }}>
       {children}
     </AuthContext.Provider>
   );

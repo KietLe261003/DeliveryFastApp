@@ -1,14 +1,22 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useTransition} from "react";
 import { Drawer } from "react-native-drawer-layout";
 import Home from "../Screen/StackScreen/Home";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
+import { useTranslation } from "react-i18next";
+import '../Lang/i18n';
 const DrawerNav = () => {
   const [open, setOpen] = useState(false);
   const navigation = useNavigation();
   const toggleSidebar = () => setOpen(!open);
+  const {t, i18n}=useTranslation();
+  const [currentLanguage, setCurrentLanguage] = useState('vn');
+    const handleChangeLangue = (value:string)=>{
+        i18n.changeLanguage(value)
+            .then(()=>setCurrentLanguage(value))
+            .catch((e)=>console.log(e))
+    }
   return (
     <Drawer
       open={open}
@@ -33,11 +41,11 @@ const DrawerNav = () => {
                 }}
             >
                 <Ionicons name="person" size={24} color="#333" />
-                <Text style={styles.menuText}>Profile</Text>
+                <Text style={styles.menuText}>{t('profile')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.menuItem}
-                // onPress={() => handleLanguageChange(currentLanguage === 'ar' ? 'curdi' : 'ar')}
+                onPress={() => handleChangeLangue(currentLanguage === 'vn' ? 'en' : 'vn')}
             >
                 <Ionicons name="language" size={24} color="#333" />
                 <Text style={styles.menuText}>
@@ -47,11 +55,12 @@ const DrawerNav = () => {
             <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {
+                    navigation.navigate('Login');
                     setOpen(false);
                 }}
             >
                 <Ionicons name="log-out" size={24} color="#53045F" />
-                <Text style={[styles.menuText, { color: '#53045F' }]}>LogOut</Text>
+                <Text style={[styles.menuText, { color: '#53045F' }]}>{t('logout')}</Text>
             </TouchableOpacity>
         </View>
     )}
