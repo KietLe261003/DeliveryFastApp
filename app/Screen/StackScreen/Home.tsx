@@ -4,11 +4,13 @@ import { useNavigation } from '@react-navigation/native';
 import { Header } from '@/app/Components/Header';
 import SlideShow from '@/app/Components/Slide';
 import { AntDesign, Entypo, Feather, FontAwesome, FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 interface HomeProps{
   openSideBar: ()=>void
 }
 const Home:React.FC<HomeProps> = ({openSideBar}) => {
   const navigation = useNavigation<any>();
+  const {t}=useTranslation();
   const [data, setData] = useState([
     {
       id: 1,
@@ -64,8 +66,6 @@ const calculateDaysLeft = (deliveredDate:any) => {
                     </TouchableOpacity>
                 </View>
                 <FlatList
-                    // style={styles.shipmentsContainer}
-                    inverted
                     data={data}
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -97,32 +97,23 @@ const calculateDaysLeft = (deliveredDate:any) => {
                 />
 
                 <View style={styles.optionsContainer}>
-                    <TouchableOpacity onPress={() => { navigation.navigate('trackShipment') }} style={styles.optionButton}>
+                    <TouchableOpacity onPress={() => { navigation.navigate('Order') }} style={styles.optionButton}>
                         <FontAwesome5 name="truck" size={24} color="#fff" style={styles.optionIcon} />
-                        <Text style={styles.optionText}>track_your_shipment</Text>
+                        <Text style={styles.optionText}>{t('order')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { Linking.openURL('https://alfuttaimcargo.com') }} style={styles.optionButton}>
+                    <TouchableOpacity onPress={() => { navigation.navigate('Delivery') }} style={styles.optionButton}>
                         <FontAwesome5 name="map-marked-alt" size={24} color="#fff" style={styles.optionIcon} />
-                        <Text style={styles.optionText}>points</Text>
+                        <Text style={styles.optionText}>{t('ondelivery')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { navigation.navigate('ShipmentsOnWay') }} style={styles.optionButton}>
+                    <TouchableOpacity onPress={() => { navigation.navigate('History') }} style={styles.optionButton}>
                         <Entypo name="location" size={24} color="#fff" style={styles.optionIcon} />
-                        <Text style={styles.optionText}>historyShipment</Text>
+                        <Text style={styles.optionText}>{t('historydelivery')}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { navigation.navigate('contactUs') }} style={styles.optionButton}>
+                    <TouchableOpacity onPress={() => { navigation.navigate('Report') }} style={styles.optionButton}>
                         <FontAwesome name="dollar" size={24} color="#fff" style={styles.optionIcon} />
-                        <Text style={styles.optionText}>get_quote</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { navigation.navigate('BuyFromChina') }} style={styles.optionButton}>
-                        <Entypo name="shopping-cart" size={24} color="#fff" style={styles.optionIcon} />
-                        <Text style={styles.optionText}>buy_from_China</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { navigation.navigate('branches') }} style={styles.optionButton}>
-                        <FontAwesome6 name="magnifying-glass-location" size={24} color="#fff" style={styles.optionIcon} />
-                        <Text style={styles.optionText}>branches</Text>
+                        <Text style={styles.optionText}>{t('report')}</Text>
                     </TouchableOpacity>
                 </View>
-
             </ScrollView>
         </SafeAreaView>
   );

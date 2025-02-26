@@ -9,11 +9,11 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login, isLoading } = useAuth();
-    const nav = useNavigation();
+    const nav = useNavigation<any>();
     const { t } = useTranslation();
     const handleLogin = ()=>{
         console.log(email);
-        alert('password');  
+        nav.navigate("Home");
     }
   return (
     <View style={styles.container}>

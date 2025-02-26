@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import '../Lang/i18n';
 const DrawerNav = () => {
   const [open, setOpen] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const toggleSidebar = () => setOpen(!open);
   const {t, i18n}=useTranslation();
   const [currentLanguage, setCurrentLanguage] = useState('vn');
@@ -49,7 +49,7 @@ const DrawerNav = () => {
             >
                 <Ionicons name="language" size={24} color="#333" />
                 <Text style={styles.menuText}>
-                    Tiếng Anh
+                    {currentLanguage === "vn" ? 'Tiếng Anh' : 'VietNamese'}
                 </Text>
             </TouchableOpacity>
             <TouchableOpacity

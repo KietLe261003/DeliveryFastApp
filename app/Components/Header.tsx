@@ -29,7 +29,7 @@ export const Header:React.FC<HeaderProps>=({ openSideBar })=> {
             <Image source={require('../images/logo.png')} style={{ width: 50, height: 50 }} resizeMode='contain' />
 
             <View style={styles.notificationIconContainer}>
-                <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+                <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
                     <FontAwesome name="bell" size={24} color="#fff" />
                 </TouchableOpacity>
 
@@ -46,13 +46,15 @@ export const Header:React.FC<HeaderProps>=({ openSideBar })=> {
         </View>
     );
 }
-
-export function HeaderBack() {
+interface HeaderBackProps{
+    name: String
+}
+export const HeaderBack:React.FC<HeaderBackProps>=({name})=> {
     const nav = useNavigation<any>();
     return (
         <View style={[styles.header, { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderRadius: 10 }]}>
             <AntDesign onPress={() => nav.goBack()} name="arrowleft" size={24} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 20, fontFamily: 'Cairo-Bold' }}>Abc</Text>
+            <Text style={{ color: '#fff', fontSize: 20, fontFamily: 'Cairo-Bold' }}>{name}</Text>
             <View style={{ width: 24 }} />
         </View>
     )

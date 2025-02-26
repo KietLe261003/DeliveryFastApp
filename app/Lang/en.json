@@ -8,6 +8,15 @@
         "email_placeholder": "Enter your email",
         "password_placeholder": "Enter your password",
         "login_button": "Login",
-        "signup": "Register"
+        "signup": "Register",
+        "fullname": "Full Name",
+        "phonenumber": "Phone Number",
+        "password": "Password",
+        "confirmpassword": "Confirm Password",
+        "order": "Order",
+        "ondelivery": "Delivery",
+        "historydelivery": "History delivery",
+        "report": "Report",
+        "notification": "Notification"
     }
 }

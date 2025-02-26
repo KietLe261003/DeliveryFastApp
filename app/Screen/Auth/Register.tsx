@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import * as Yup from "yup";
 import { Formik } from "formik";
 const Register = () => {
-  const nav = useNavigation();
+  const nav = useNavigation<any>();
   const { register } = useAuth();
   const { t } = useTranslation();
 
@@ -62,7 +62,7 @@ const Register = () => {
           <View>
             <TextInput
               style={styles.input}
-              placeholder={t("fullName")}
+              placeholder={t("fullname")}
               placeholderTextColor="#666"
               value={values.fullName}
               onChangeText={handleChange("fullName")}
@@ -81,7 +81,7 @@ const Register = () => {
             {touched.email && errors.email && <Text style={{ color: 'red' }}>{errors.email}</Text>}
             <TextInput
               style={styles.input}
-              placeholder={t("phoneNumber")}
+              placeholder={t("phonenumber")}
               placeholderTextColor="#666"
               value={values.phoneNumber}
               onChangeText={handleChange("phoneNumber")}
@@ -101,7 +101,7 @@ const Register = () => {
             {touched.password && errors.password && <Text style={{ color: 'red' }}>{errors.password}</Text>}
             <TextInput
               style={styles.input}
-              placeholder={t("confirmPassword")}
+              placeholder={t("confirmpassword")}
               placeholderTextColor="#666"
               secureTextEntry
               value={values.confirmPassword}
@@ -113,7 +113,7 @@ const Register = () => {
               style={styles.button}
               onPress={()=>{handleSubmit()}}
             >
-              <Text style={styles.buttonText}>{t("register")}</Text>
+              <Text style={styles.buttonText}>{t("signup")}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => nav.navigate("Login")}>
               <Text style={styles.loginLink}>{t("haveAccount")}</Text>

@@ -9,6 +9,15 @@
         "password_placeholder": "Nhập mật khẩu của bạn",
         "loading_button": "...",
         "login_button": "Đăng nhập",
-        "signup": "Đăng ký"
+        "signup": "Đăng ký",
+        "fullname": "Họ và tên",
+        "phonenumber": "Số điện thoại",
+        "password": "Mật khẩu",
+        "confirmpassword": "Xác nhận mật khẩu",
+        "order": "Đơn hàng",
+        "ondelivery": "Đang giao hàng",
+        "historydelivery": "Lịch sử giao hàng",
+        "report": "Báo cáo",
+        "notification": "Thông báo"
     }
 }
