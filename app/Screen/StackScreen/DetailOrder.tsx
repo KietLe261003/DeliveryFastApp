@@ -1,9 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { FontAwesome5, MaterialIcons, Ionicons, Entypo } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderBack } from '@/app/Components/Header';
+import { useNavigation } from '@react-navigation/native';
 
 const getSampleShipment = () => ({
     tracking_number: 'ABC123456789',
@@ -31,13 +32,13 @@ const DetailOrder = () => {
     const { t, i18n } = useTranslation();
     const [translatedShipment, setTranslatedShipment] = useState(getSampleShipment());
     const [loading, setLoading] = useState(false);
-    
+    const nav = useNavigation<any>();
 
     
 
     return (
         <SafeAreaView style={styles.container}>
-            <HeaderBack name={t('shipmentDetails')} />
+            <HeaderBack name={t('shipmentdetails')} />
             <ScrollView>
                 <View style={styles.card}>
                     <Text style={styles.sectionTitle}>{t('shipmentInfo')}</Text>
@@ -128,6 +129,9 @@ const DetailOrder = () => {
                     ))}
                 </View>
             </ScrollView>
+            <TouchableOpacity style={styles.buttonship} onPress={()=>nav.navigate('Map')}>
+                <Text style={{color: 'white', fontWeight: 'bold', fontSize: 15}}>{t('delivery')}</Text>
+            </TouchableOpacity>
         </SafeAreaView>
     );
 };
@@ -214,4 +218,10 @@ const styles = StyleSheet.create({
         fontFamily: 'Cairo-Regular',
         textAlign: 'right',
     },
+    buttonship: {
+        backgroundColor: '#53045F',
+        width: '100%',
+        padding: 20,
+        alignItems: 'center',
+    }
 });

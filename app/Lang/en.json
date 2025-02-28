@@ -17,6 +17,8 @@
         "ondelivery": "Delivery",
         "historydelivery": "History delivery",
         "report": "Report",
-        "notification": "Notification"
+        "notification": "Notification",
+        "delivery": "Delivery",
+        "shipmentdetails": "Shipment details"
     }
 }

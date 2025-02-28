@@ -18,6 +18,8 @@
         "ondelivery": "Đang giao hàng",
         "historydelivery": "Lịch sử giao hàng",
         "report": "Báo cáo",
-        "notification": "Thông báo"
+        "notification": "Thông báo",
+        "delivery": "Giao hàng",
+        "shipmentdetails": "Chi tiết đơn giao"
     }
 }

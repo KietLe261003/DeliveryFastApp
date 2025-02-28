@@ -71,7 +71,7 @@ const calculateDaysLeft = (deliveredDate:any) => {
                     showsHorizontalScrollIndicator={false}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => navigation.navigate('ShipmentDetails', { shipment: item })} style={styles.shipmentCard}>
+                        <TouchableOpacity onPress={() => navigation.navigate('DetailOrder', { shipment: item })} style={styles.shipmentCard}>
                             <View style={{ alignItems: 'flex-end', flex: 1 }}>
                                 <View style={styles.shipmentHeader}>
                                     <FontAwesome6 name="hashtag" size={15} color="#53045F" />
