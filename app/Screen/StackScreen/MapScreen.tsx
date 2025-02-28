@@ -28,11 +28,9 @@ const MapScreen = () => {
             if (index < routeCoordinates.length - 1) {
                 const newCoordinate = routeCoordinates[index + 1];
                 setIndex((prev) => prev + 1);
-
-                // Cập nhật giá trị animation
                 Animated.timing(animatedLatitude, {
                     toValue: newCoordinate.latitude,
-                    duration: 1000, // Di chuyển trong 1 giây
+                    duration: 1000, 
                     useNativeDriver: false,
                 }).start();
 

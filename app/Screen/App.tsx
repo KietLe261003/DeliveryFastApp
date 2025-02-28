@@ -18,7 +18,7 @@ import MapScreen from "./StackScreen/MapScreen";
 const Stack = createNativeStackNavigator();
 
 const App = () => {
-  const { isLoading } = useAuth();
+  const { isLoading, user } = useAuth();
 
   if (isLoading) {
     return <Loading />;
@@ -28,18 +28,25 @@ const App = () => {
     <>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="Home"
+        initialRouteName="Login"
       >
-        <Stack.Screen name="Home" component={DrawerNav} />
-        <Stack.Screen name="Order" component={Order}/>
-        <Stack.Screen name="Delivery" component={Delivery}/>
-        <Stack.Screen name="Report" component={Report}/>
-        <Stack.Screen name="History" component={History}/>
-        <Stack.Screen name="Notification" component={Notification}/>
-        <Stack.Screen name="DetailOrder" component={DetailOrder}/>
-        <Stack.Screen name="Map" component={MapScreen}/>
-        <Stack.Screen name="Login" component={Login}/>
-        <Stack.Screen name="Register" component={Register}/>
+        {!user ? (
+          <>
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Register" component={Register} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Home" component={DrawerNav} />
+            <Stack.Screen name="Order" component={Order} />
+            <Stack.Screen name="Delivery" component={Delivery} />
+            <Stack.Screen name="Report" component={Report} />
+            <Stack.Screen name="History" component={History} />
+            <Stack.Screen name="Notification" component={Notification} />
+            <Stack.Screen name="DetailOrder" component={DetailOrder} />
+            <Stack.Screen name="Map" component={MapScreen} />
+          </>
+        )}
       </Stack.Navigator>
     </>
   );

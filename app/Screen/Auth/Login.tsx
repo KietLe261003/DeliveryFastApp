@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useAuth } from '@/app/Context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { UserLogin } from '@/app/Type/UserType';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -12,8 +13,11 @@ const Login = () => {
     const nav = useNavigation<any>();
     const { t } = useTranslation();
     const handleLogin = ()=>{
-        console.log(email);
-        nav.navigate("Home");
+        const data:UserLogin={
+            email,
+            password
+        }
+        login(data);
     }
   return (
     <View style={styles.container}>
