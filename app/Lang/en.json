@@ -19,6 +19,18 @@
         "report": "Report",
         "notification": "Notification",
         "delivery": "Delivery",
-        "shipmentdetails": "Shipment details"
+        "shipmentdetails": "Shipment details",
+        "shipmentInfo": "Shipment Infomation",
+        "trackingNumber": "Order Id",
+        "receiver": "Receiver",
+        "senderAddress": "Sender Address",
+        "receiverAddress": "Receiver Address",
+        "sentDate": "Sent Date",
+        "deliveredDate": "Delivered Date",
+        "weight": "Weight",
+        "status": "Status",
+        "price": "Price",
+        "notes": "Notes",
+        "receiverPhone": "Receiver Phone"
     }
 }

@@ -18,7 +18,7 @@ import MapScreen from "./StackScreen/MapScreen";
 const Stack = createNativeStackNavigator();
 
 const App = () => {
-  const { isLoading, user } = useAuth();
+  const { isLoading, token } = useAuth();
 
   if (isLoading) {
     return <Loading />;
@@ -28,9 +28,9 @@ const App = () => {
     <>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="Login"
+        initialRouteName={!token ? "Login" : "Home"}
       >
-        {!user ? (
+        {!token ? (
           <>
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Register" component={Register} />

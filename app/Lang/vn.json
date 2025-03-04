@@ -20,6 +20,18 @@
         "report": "Báo cáo",
         "notification": "Thông báo",
         "delivery": "Giao hàng",
-        "shipmentdetails": "Chi tiết đơn giao"
+        "shipmentdetails": "Chi tiết đơn giao",
+        "shipmentInfo": "Thông tin đơn hàng",
+        "trackingNumber": "Mã đơn hàng",
+        "receiver": "Người nhận",
+        "senderAddress": "Địa chỉ gửi",
+        "receiverAddress": "Địa chỉ nhận",
+        "sentDate": "Ngày gửi",
+        "deliveredDate": "Ngày giao",
+        "weight": "Kích thước",
+        "status": "Trạng thái",
+        "price": "Giá",
+        "notes": "Ghi chú",
+        "receiverPhone": "Số điện thoại"
     }
 }

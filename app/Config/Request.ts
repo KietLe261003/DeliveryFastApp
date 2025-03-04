@@ -1,30 +1,33 @@
 import axios from "axios";
+import { API_URL, KEY_TOKEN } from "@/env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Tạo một instance axios với cấu hình mặc định
 export const request = axios.create({
-    baseURL: "http://localhost:8181/api/", // URL từ file cấu hình môi trường
-    timeout: 0, // Không giới hạn thời gian request
+    baseURL: API_URL, // URL từ file cấu hình môi trường
+    timeout: 10000, // Không giới hạn thời gian request
     headers: { 'X-Custom-Header': 'foobar' } // Header mặc định
 });
 
 // Thêm interceptor để chèn token vào mỗi request nếu có
 request.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("Token");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`; 
+    async (config) => {
+        try {
+            const token = await AsyncStorage.getItem(KEY_TOKEN);
+            const tokenStr = token ? JSON.parse(token) : null;
+            if (tokenStr) {
+                config.headers.Authorization = `Bearer ${tokenStr}`; 
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy token:", error);
         }
         return config; 
     },
-    (error) => {
-        // Xử lý lỗi trước khi request được gửi đi
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
+
 request.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     (error) => {
         if (error.response?.status === 401) {
             console.error("Unauthorized! Redirecting to login...");
