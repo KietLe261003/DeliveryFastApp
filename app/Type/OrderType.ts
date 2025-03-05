@@ -20,3 +20,18 @@ export interface OrderResponse{
     message: string,
     data: Order[]
 }
+interface GeoPoint{
+    latitude: number, 
+    longitude: number
+}
+export interface WareHouse{
+    id: string,
+    name: string,
+    type: string,
+    location: GeoPoint
+}
+export interface WareHouseResponse{
+    code: number,
+    message: string,
+    data: WareHouse[]
+}
