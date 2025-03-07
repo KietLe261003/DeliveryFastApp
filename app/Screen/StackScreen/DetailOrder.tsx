@@ -168,7 +168,7 @@ const DetailOrder = () => {
       </ScrollView>
       <TouchableOpacity
         style={styles.buttonship}
-        onPress={() => nav.navigate("Map")}
+        onPress={() => nav.navigate("Map",{orderId: order.id})}
       >
         <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>
           {t("delivery")}

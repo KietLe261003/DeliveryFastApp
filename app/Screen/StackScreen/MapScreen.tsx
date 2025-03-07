@@ -3,13 +3,23 @@ import React, { useEffect, useState } from "react";
 import { HeaderBack } from "@/app/Components/Header";
 import { useTranslation } from "react-i18next";
 import MapView, { Marker, Polygon, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import { WareHouse, WareHouseResponse } from "@/app/Type/OrderType";
-import { OrderService } from "@/app/Service/OrderService";
 
+import { RouteProp, useRoute } from "@react-navigation/native";
+import { Tracking, TrackingResponse } from "@/app/Type/TrackingType";
+import { OrderService } from "@/app/Service/OrderService";
+import { GeoPoint } from "@/app/Type/OrderType";
+interface MapScreenParam{
+  orderId: string,
+}
 const MapScreen = () => {
   const { t } = useTranslation();
-  const [routeCoordinates,setRouteCoordinates] = useState<WareHouse[]>([]);
-
+  const route =
+      useRoute<
+        RouteProp<{ MapScreenRoute: MapScreenParam}, "MapScreenRoute">
+      >();
+  const {orderId}=route.params;
+  const [routeCoordinates,setRouteCoordinates] = useState<Tracking[]>([]);
+  const [path,setPath]=useState<GeoPoint[]>([]);
 
   // Danh sách tọa độ từ A đến B
   // const routeCoordinates = [
@@ -28,25 +38,28 @@ const MapScreen = () => {
     { latitude: 10.7765, longitude: 106.7030 },
   ];
 
-  const getAllWareHouse = async()=>{
+  const getAllTracking = async()=>{
     try {
-      const res:WareHouseResponse = await OrderService.getAllWareHouse();
+      const res:TrackingResponse = await OrderService.getAllTracking(orderId);
       setRouteCoordinates(res.data);
+      const pathMap= res.data.map((item)=>{
+        return item.location
+      });
+      setPath(pathMap);
     } catch (error) {
-      console.log("Lấy dữ liệu thất bại");
-      
+      console.log(orderId);
+      console.log("Lấy dữ liệu thất bại",error);
     }
   }
   useEffect(()=>{
-    getAllWareHouse();
-  },[])
+    getAllTracking();
+  },[orderId])
 
   return (
     <SafeAreaView style={styles.container}>
       <HeaderBack name={t("Google Map")} />
       <View style={{ flex: 1 }}>
-        {
-          routeCoordinates.length > 0 && 
+        {routeCoordinates.length > 0 && (
           <MapView
             provider={PROVIDER_GOOGLE}
             style={{ flex: 1 }}
@@ -63,6 +76,11 @@ const MapScreen = () => {
               strokeColor="red"
               fillColor="rgba(255, 0, 0, 0.2)" // Màu đỏ nhạt
             />
+            <Polyline
+              coordinates={path}
+              strokeWidth={3}
+              strokeColor="blue"
+            />
             {routeCoordinates.map((item, index) => (
               <Marker
                 key={index}
@@ -71,11 +89,11 @@ const MapScreen = () => {
                   longitude: item.location.longitude,
                 }}
                 title={`Điểm ${index + 1}`}
-                description={`Name: ${item.name},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
+                description={`Name: ${item.status},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
               />
             ))}
           </MapView>
-        }
+        )}
       </View>
     </SafeAreaView>
   );

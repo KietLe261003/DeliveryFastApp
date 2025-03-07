@@ -20,7 +20,7 @@ export interface OrderResponse{
     message: string,
     data: Order[]
 }
-interface GeoPoint{
+export interface GeoPoint{
     latitude: number, 
     longitude: number
 }
