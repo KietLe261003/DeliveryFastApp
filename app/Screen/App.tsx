@@ -14,6 +14,7 @@ import Report from "./StackScreen/Report";
 import Notification from "./StackScreen/Notification";
 import DetailOrder from "./StackScreen/DetailOrder";
 import MapScreen from "./StackScreen/MapScreen";
+import MapRouteOrder from "./StackScreen/MapRouteOrder";
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +46,7 @@ const App = () => {
             <Stack.Screen name="Notification" component={Notification} />
             <Stack.Screen name="DetailOrder" component={DetailOrder} />
             <Stack.Screen name="Map" component={MapScreen} />
+            <Stack.Screen name="MapRouteOrder" component={MapRouteOrder}/>
           </>
         )}
       </Stack.Navigator>

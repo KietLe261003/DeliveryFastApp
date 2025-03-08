@@ -1,99 +1,112 @@
-import { View, Text, SafeAreaView, StyleSheet, Animated, Linking } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  StyleSheet,
+  Animated,
+  Linking,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { HeaderBack } from "@/app/Components/Header";
 import { useTranslation } from "react-i18next";
-import MapView, { Marker, Polygon, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, {
+  Marker,
+  Polygon,
+  Polyline,
+  PROVIDER_GOOGLE,
+} from "react-native-maps";
 
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { Tracking, TrackingResponse } from "@/app/Type/TrackingType";
 import { OrderService } from "@/app/Service/OrderService";
 import { GeoPoint } from "@/app/Type/OrderType";
-interface MapScreenParam{
-  orderId: string,
+import { ShipperResponse } from "@/app/Type/ShipperType";
+import { ShipperService } from "@/app/Service/ShipperService";
+import { useAuth } from "@/app/Context/AuthContext";
+interface MapScreenParam {
+  orderId: string;
 }
 const MapScreen = () => {
   const { t } = useTranslation();
-  const route =
-      useRoute<
-        RouteProp<{ MapScreenRoute: MapScreenParam}, "MapScreenRoute">
-      >();
-  const {orderId}=route.params;
-  const [routeCoordinates,setRouteCoordinates] = useState<Tracking[]>([]);
-  const [path,setPath]=useState<GeoPoint[]>([]);
+  const { user } = useAuth();
+  // const route =
+  //   useRoute<RouteProp<{ MapScreenRoute: MapScreenParam }, "MapScreenRoute">>();
+  // const { orderId } = route.params;
+  const [routeCoordinates, setRouteCoordinates] = useState<Tracking[]>([]);
+  const [path, setPath] = useState<GeoPoint[]>([]);
 
-  // Danh sách tọa độ từ A đến B
-  // const routeCoordinates = [
-  //   { latitude: 10.7769, longitude: 106.7009 }, // Điểm A
-  //   { latitude: 10.7775, longitude: 106.7015 },
-  //   { latitude: 10.778, longitude: 106.702 },
-  //   { latitude: 10.7785, longitude: 106.7025 },
-  //   { latitude: 10.779, longitude: 106.703 }, // Điểm B
-  // ];
+  const [shipperArea, setShipperArea] = useState<
+    {
+      latitude: number;
+      longitude: number;
+    }[]
+  >([
+    {
+      latitude: 10.7765,
+      longitude: 106.7005,
+    },
+  ]);
 
-
-  const shipperArea = [
-    { latitude: 10.7765, longitude: 106.7005 },
-    { latitude: 10.7785, longitude: 106.7005 },
-    { latitude: 10.7790, longitude: 106.7025 },
-    { latitude: 10.7765, longitude: 106.7030 },
-  ];
-
-  const getAllTracking = async()=>{
+  // const getAllTracking = async () => {
+  //   try {
+  //     const res: TrackingResponse = await OrderService.getAllTracking(orderId);
+  //     setRouteCoordinates(res.data);
+  //     const pathMap = res.data.map((item) => {
+  //       return item.location;
+  //     });
+  //     setPath(pathMap);
+  //   } catch (error) {
+  //     console.log("Lấy dữ liệu thất bại", error);
+  //   }
+  // };
+  const getShipperArea = async () => {
     try {
-      const res:TrackingResponse = await OrderService.getAllTracking(orderId);
-      setRouteCoordinates(res.data);
-      const pathMap= res.data.map((item)=>{
-        return item.location
-      });
-      setPath(pathMap);
+      const res: ShipperResponse = await ShipperService.findShipperByUserId(
+        user.userId
+      );
+      setShipperArea(res.data.shipperArea);
     } catch (error) {
-      console.log(orderId);
-      console.log("Lấy dữ liệu thất bại",error);
+      console.log("Lỗi lấy dữ liệu: ", error);
     }
-  }
-  useEffect(()=>{
-    getAllTracking();
-  },[orderId])
+  };
+  useEffect(() => {
+ 
+    getShipperArea();
+  }, [user]);
 
   return (
     <SafeAreaView style={styles.container}>
       <HeaderBack name={t("Google Map")} />
       <View style={{ flex: 1 }}>
-        {routeCoordinates.length > 0 && (
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={{ flex: 1 }}
-            initialRegion={{
-              latitude: routeCoordinates[0].location.latitude,
-              longitude: routeCoordinates[0].location.longitude,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            <Polygon
-              coordinates={shipperArea}
-              strokeWidth={2}
-              strokeColor="red"
-              fillColor="rgba(255, 0, 0, 0.2)" // Màu đỏ nhạt
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          style={{ flex: 1 }}
+          initialRegion={{
+            latitude: shipperArea[0].latitude,
+            longitude: shipperArea[0].longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          }}
+        >
+          <Polygon
+            coordinates={shipperArea}
+            strokeWidth={2}
+            strokeColor="red"
+            fillColor="rgba(255, 0, 0, 0.2)" // Màu đỏ nhạt
+          />
+          <Polyline coordinates={path} strokeWidth={3} strokeColor="blue" />
+          {routeCoordinates.map((item, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: item.location.latitude,
+                longitude: item.location.longitude,
+              }}
+              title={`Điểm ${index + 1}`}
+              description={`Name: ${item.status},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
             />
-            <Polyline
-              coordinates={path}
-              strokeWidth={3}
-              strokeColor="blue"
-            />
-            {routeCoordinates.map((item, index) => (
-              <Marker
-                key={index}
-                coordinate={{
-                  latitude: item.location.latitude,
-                  longitude: item.location.longitude,
-                }}
-                title={`Điểm ${index + 1}`}
-                description={`Name: ${item.status},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
-              />
-            ))}
-          </MapView>
-        )}
+          ))}
+        </MapView>
       </View>
     </SafeAreaView>
   );

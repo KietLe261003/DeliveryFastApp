@@ -35,7 +35,6 @@ const getAllOrder = async()=>{
         setData(res.data);
     } catch (error) {
         console.log("Lỗi lấy dữ liệu: ",error);
-        
     }
 }
 useEffect(()=>{
