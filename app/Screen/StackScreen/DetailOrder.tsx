@@ -5,6 +5,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import {
   FontAwesome5,
@@ -18,6 +19,9 @@ import { HeaderBack } from "@/app/Components/Header";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { Order } from "@/app/Type/OrderType";
 import { addDays, formatDateTime } from "@/app/Untils/RenderDateTime";
+import { Tracking, TrackingResponse, UpdateTracking } from "@/app/Type/TrackingType";
+import { OrderService } from "@/app/Service/OrderService";
+import { useAuth } from "@/app/Context/AuthContext";
 
 const getSampleShipment = () => ({
   container: {
@@ -51,6 +55,8 @@ interface DetailOrderRouteParams {
 }
 const DetailOrder = () => {
   const { t, i18n } = useTranslation();
+  const {user}=useAuth();
+  const [currentTracking,setCurrentTracking]=useState("ready");
   const route =
     useRoute<
       RouteProp<{ DetailOrder: DetailOrderRouteParams }, "DetailOrder">
@@ -58,9 +64,79 @@ const DetailOrder = () => {
   const [translatedShipment, setTranslatedShipment] = useState(
     getSampleShipment()
   );
+  const [trackingOrder,setTrackingOrder]=useState<Tracking[]>([]);
   const [loading, setLoading] = useState(false);
   const nav = useNavigation<any>();
   const { order } = route.params;
+  const receiveOrder= async()=>{
+    try {
+      const currentTracking = trackingOrder.find((item)=>item.status==="ready");
+      const data:UpdateTracking={
+        status: "shipping",
+        shipperId: user.userId
+      }
+      if(currentTracking===undefined)
+        console.log("lỗi");
+      else  
+      {
+         await OrderService.updateTracking(currentTracking?.id,data);
+        alert("Nhận đơn hàng thành công");
+        nav.goBack();
+      }
+    } catch (error) {
+      console.log("Cập nhật dữ liệu thất bại: ",error);
+    }
+  }
+  const completeDelivery = async()=>{
+    try {
+      const currentTrackingIndex = trackingOrder.findIndex((item)=>item.status==="shipping");
+      const data:UpdateTracking={
+        status: "complete",
+        shipperId: user.userId
+      }
+      if(currentTrackingIndex===-1)
+        console.log("lỗi");
+      else  
+      {
+        const currentTracking=trackingOrder[currentTrackingIndex];
+        const nextTracking = trackingOrder[currentTrackingIndex+1];
+        const dataNextTracking:UpdateTracking = {
+          status: nextTracking.status!=="target"? "ready":"complete",
+          shipperId: null
+        }
+        await OrderService.updateTracking(currentTracking.id,data);
+        await OrderService.updateTracking(nextTracking.id,dataNextTracking)
+        
+        alert("Hoàn thành đơn hàng thành công");
+        nav.goBack();
+      }
+    } catch (error) {
+      console.log("Cập nhật dữ liệu thất bại: ",error);
+    }
+  }
+  const getAllTracking = async()=>{
+      try {
+        const res:TrackingResponse = await OrderService.getAllTracking(order.id);
+        setTrackingOrder(res.data);
+        for (const item of res.data) {
+          if (item.shipperId === user.userId && item.status==="complete") {
+            setCurrentTracking("complete");
+            break; 
+          }
+          if (item.status === "shipping" || item.status === "ready") {
+            setCurrentTracking(item.status);
+            break; 
+          }
+        }
+        
+      } catch (error) {
+        console.log(order.id);
+        console.log("Lấy dữ liệu thất bại",error);
+      }
+    }
+    useEffect(()=>{
+      getAllTracking();
+    },[order])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,15 +173,13 @@ const DetailOrder = () => {
           <View style={styles.row}>
             <FontAwesome5 name="calendar-alt" size={24} color="#53045F" />
             <Text style={styles.title}>{t("sentDate")}:</Text>
-            <Text style={styles.text}>
-              {formatDateTime(order.createAt)}
-            </Text>
+            <Text style={styles.text}>{formatDateTime(order.createAt)}</Text>
           </View>
           <View style={styles.row}>
             <FontAwesome5 name="calendar-alt" size={24} color="#53045F" />
             <Text style={styles.title}>{t("deliveredDate")}:</Text>
             <Text style={styles.text}>
-            {formatDateTime(addDays(order.createAt,10))}
+              {formatDateTime(addDays(order.createAt, 10))}
             </Text>
           </View>
           <View style={styles.row}>
@@ -148,32 +222,62 @@ const DetailOrder = () => {
         </View>
         <View style={styles.timelineContainer}>
           <Text style={styles.sectionTitle}>{t("track_shipment")}</Text>
-          {translatedShipment.container.location.map((loc, index) => (
+          {trackingOrder.map((loc, index) => (
             <View key={loc.id} style={styles.timelineItem}>
-              {index < translatedShipment.container.location.length - 1 && (
+              {index < trackingOrder.length - 1 && (
                 <View style={styles.timelineLine} />
               )}
               <View style={styles.timelineCircle} />
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineText}>{loc.region || "N/A"}</Text>
-                <Text style={styles.timelineText}>{loc.region || "N/A"}</Text>
-                <Text style={styles.timelineText}>{loc.address || "N/A"}</Text>
                 <Text style={styles.timelineText}>
-                  {loc?.pivot?.expected_arrival_date?.slice(0, 10) || "N/A"}
+                  {loc.description || "N/A"}
+                </Text>
+                <Text style={styles.timelineText}>{loc.status || "N/A"}</Text>
+                <Text style={styles.timelineText}>
+                  {loc.location.latitude + " : " + loc.location.longitude ||
+                    "N/A"}
                 </Text>
               </View>
             </View>
           ))}
         </View>
       </ScrollView>
-      <TouchableOpacity
-        style={styles.buttonship}
-        onPress={() => nav.navigate("MapRouteOrder",{orderId: order.id})}
-      >
-        <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>
-          {t("delivery")}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonView}>
+        {
+          currentTracking!=="complete" &&
+          <TouchableOpacity
+            style={styles.buttonMap}
+            onPress={() => nav.navigate("MapRouteOrder", { orderId: order.id })}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>
+              {t("view_map")}
+            </Text>
+          </TouchableOpacity>
+        }
+        {currentTracking!=="complete" && ( currentTracking === "ready" ? (
+          <TouchableOpacity
+            style={styles.buttonShip}
+            onPress={() => {
+              receiveOrder();
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>
+              {t("receive_order")}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.buttonShip}
+            onPress={() => {
+              completeDelivery();
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 15 }}>
+              {t("complete_delivery")}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </SafeAreaView>
   );
 };
@@ -258,10 +362,22 @@ const styles = StyleSheet.create({
     fontFamily: "Cairo-Regular",
     textAlign: "right",
   },
-  buttonship: {
-    backgroundColor: "#53045F",
+  buttonView: {
     width: "100%",
-    padding: 20,
     alignItems: "center",
   },
+  buttonShip:{
+    backgroundColor: "green",
+    padding: 20,
+    width: '100%',
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  buttonMap:{
+    backgroundColor: "#53045F",
+    padding: 20,
+    width: '100%',
+    marginVertical: 10,
+    alignItems: "center",
+  }
 });

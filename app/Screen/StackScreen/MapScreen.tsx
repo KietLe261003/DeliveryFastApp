@@ -40,25 +40,20 @@ const MapScreen = () => {
       latitude: number;
       longitude: number;
     }[]
-  >([
-    {
-      latitude: 10.7765,
-      longitude: 106.7005,
-    },
-  ]);
+  >([]);
 
-  // const getAllTracking = async () => {
-  //   try {
-  //     const res: TrackingResponse = await OrderService.getAllTracking(orderId);
-  //     setRouteCoordinates(res.data);
-  //     const pathMap = res.data.map((item) => {
-  //       return item.location;
-  //     });
-  //     setPath(pathMap);
-  //   } catch (error) {
-  //     console.log("Lấy dữ liệu thất bại", error);
-  //   }
-  // };
+  const getAllTracking = async () => {
+    try {
+      const res: TrackingResponse = await OrderService.getTrackingByShipeprId(user.userId);
+      setRouteCoordinates(res.data);
+      const pathMap = res.data.map((item) => {
+        return item.location;
+      });
+      setPath(pathMap);
+    } catch (error) {
+      console.log("Lấy dữ liệu thất bại", error);
+    }
+  };
   const getShipperArea = async () => {
     try {
       const res: ShipperResponse = await ShipperService.findShipperByUserId(
@@ -70,7 +65,7 @@ const MapScreen = () => {
     }
   };
   useEffect(() => {
- 
+    getAllTracking();
     getShipperArea();
   }, [user]);
 
@@ -78,35 +73,37 @@ const MapScreen = () => {
     <SafeAreaView style={styles.container}>
       <HeaderBack name={t("Google Map")} />
       <View style={{ flex: 1 }}>
-        <MapView
-          provider={PROVIDER_GOOGLE}
-          style={{ flex: 1 }}
-          initialRegion={{
-            latitude: shipperArea[0].latitude,
-            longitude: shipperArea[0].longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-        >
-          <Polygon
-            coordinates={shipperArea}
-            strokeWidth={2}
-            strokeColor="red"
-            fillColor="rgba(255, 0, 0, 0.2)" // Màu đỏ nhạt
-          />
-          <Polyline coordinates={path} strokeWidth={3} strokeColor="blue" />
-          {routeCoordinates.map((item, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: item.location.latitude,
-                longitude: item.location.longitude,
-              }}
-              title={`Điểm ${index + 1}`}
-              description={`Name: ${item.status},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
+        {shipperArea.length > 0 && (
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={{ flex: 1 }}
+            initialRegion={{
+              latitude: shipperArea[0].latitude,
+              longitude: shipperArea[0].longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+          >
+            <Polygon
+              coordinates={shipperArea}
+              strokeWidth={2}
+              strokeColor="red"
+              fillColor="rgba(255, 0, 0, 0.2)" // Màu đỏ nhạt
             />
-          ))}
-        </MapView>
+            {routeCoordinates.map((item, index) => (
+              <Marker
+                pinColor={`${item.status==="shipping" ? 'orange' : 'red'}`}
+                key={index}
+                coordinate={{
+                  latitude: item.location.latitude,
+                  longitude: item.location.longitude,
+                }}
+                title={`Đơn hàng: ${item.orderId}`}
+                description={`Status: ${item.status},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
+              />
+            ))}
+          </MapView>
+        )}
       </View>
     </SafeAreaView>
   );

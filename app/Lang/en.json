@@ -31,6 +31,10 @@
         "status": "Status",
         "price": "Price",
         "notes": "Notes",
-        "receiverPhone": "Receiver Phone"
+        "receiverPhone": "Receiver Phone",
+        "track_shipment": "Tracking Shipment",
+        "view_map":"View Map",
+        "receive_order": "Receive Order",
+        "complete_delivery": "Complete Delivery"
     }
 }

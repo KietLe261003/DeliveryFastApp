@@ -32,6 +32,10 @@
         "status": "Trạng thái",
         "price": "Giá",
         "notes": "Ghi chú",
-        "receiverPhone": "Số điện thoại"
+        "receiverPhone": "Số điện thoại",
+        "track_shipment": "Lộ trình giao hàng",
+        "view_map":"Xem map",
+        "receive_order": "Nhận đơn",
+        "complete_delivery": "Hoàn thành giao hàng"
     }
 }

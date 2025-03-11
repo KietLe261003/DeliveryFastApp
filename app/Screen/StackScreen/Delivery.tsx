@@ -1,6 +1,8 @@
 import { HeaderBack } from "@/app/Components/Header";
+import { useAuth } from "@/app/Context/AuthContext";
 import { OrderService } from "@/app/Service/OrderService";
-import { Order, OrderResponse } from "@/app/Type/OrderType";
+import { Order, OrderIdResponse, OrderResponse } from "@/app/Type/OrderType";
+import { TrackingResponse } from "@/app/Type/TrackingType";
 import { RenderName30Words } from "@/app/Untils/RenderName";
 import { KEY_IMAGEURL } from "@/env";
 import {
@@ -25,6 +27,7 @@ import { FlatList, ScrollView } from "react-native-gesture-handler";
 const Delivery = () => {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
+  const {user}=useAuth();
   const [data, setData] = useState<Order[]>([]);
   const calculateDaysLeft = (deliveredDate: any) => {
     const currentDate = new Date();
@@ -33,17 +36,26 @@ const Delivery = () => {
     const daysLeft = Math.ceil(timeDifference / (1000 * 3600 * 24));
     return daysLeft > 0 ? daysLeft : 0;
   };
-  const getAllOrder = async () => {
-    try {
-      const res: OrderResponse = await OrderService.getAllOrder();
-      setData(res.data);
-    } catch (error) {
-      console.log("Lỗi lấy dữ liệu: ", error);
-    }
-  };
+  const getAllOrder = async()=>{
+      try {
+          const resTracking: TrackingResponse = await OrderService.getTrackingByShipeprId(user.userId);
+          const listOrderPromises = resTracking.data.filter((item)=>item.status==="shipping").map(async (item) => {
+            const order: OrderIdResponse = await OrderService.findOrderById(item.orderId);
+            return order.data;
+          });
+          const listOrder: Order[] = await Promise.all(listOrderPromises);
+          setData(listOrder);
+      } catch (error) {
+          console.log("Lỗi lấy dữ liệu: ",error);
+      }
+  }
   useEffect(() => {
-    getAllOrder();
-  }, []);
+      getAllOrder();
+      const unsubscribe = navigation.addListener("focus", () => {
+        getAllOrder();
+      });
+      return unsubscribe;
+    }, [user.userId]);
   return (
     <SafeAreaView style={styles.container}>
       <HeaderBack name={t("ondelivery")} />

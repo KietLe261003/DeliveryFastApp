@@ -20,6 +20,11 @@ export interface OrderResponse{
     message: string,
     data: Order[]
 }
+export interface OrderIdResponse{
+    code: number,
+    message: string,
+    data: Order
+}
 export interface GeoPoint{
     latitude: number, 
     longitude: number

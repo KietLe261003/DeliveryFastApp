@@ -21,30 +21,17 @@ const MapRouteOrder = () => {
   const [routeCoordinates,setRouteCoordinates] = useState<Tracking[]>([]);
   const [path,setPath]=useState<GeoPoint[]>([]);
 
-  // Danh sách tọa độ từ A đến B
-  // const routeCoordinates = [
-  //   { latitude: 10.7769, longitude: 106.7009 }, // Điểm A
-  //   { latitude: 10.7775, longitude: 106.7015 },
-  //   { latitude: 10.778, longitude: 106.702 },
-  //   { latitude: 10.7785, longitude: 106.7025 },
-  //   { latitude: 10.779, longitude: 106.703 }, // Điểm B
-  // ];
 
 
-  const shipperArea = [
-    { latitude: 10.7765, longitude: 106.7005 },
-    { latitude: 10.7785, longitude: 106.7005 },
-    { latitude: 10.7790, longitude: 106.7025 },
-    { latitude: 10.7765, longitude: 106.7030 },
-  ];
 
   const getAllTracking = async()=>{
     try {
       const res:TrackingResponse = await OrderService.getAllTracking(orderId);
-      setRouteCoordinates(res.data);
-      const pathMap= res.data.map((item)=>{
+      setRouteCoordinates(res.data.filter((item)=>item.status!="complete"));
+      const pathMap= res.data.filter((item)=>item.status!=="complete").map((item)=>{
         return item.location
       });
+      pathMap.push(res.data[res.data.length-1].nextLocation);
       setPath(pathMap);
     } catch (error) {
       console.log(orderId);
@@ -70,12 +57,6 @@ const MapRouteOrder = () => {
               longitudeDelta: 0.01,
             }}
           >
-            <Polygon
-              coordinates={shipperArea}
-              strokeWidth={2}
-              strokeColor="red"
-              fillColor="rgba(255, 0, 0, 0.2)" // Màu đỏ nhạt
-            />
             <Polyline
               coordinates={path}
               strokeWidth={3}
@@ -88,8 +69,8 @@ const MapRouteOrder = () => {
                   latitude: item.location.latitude,
                   longitude: item.location.longitude,
                 }}
-                title={`Điểm ${index + 1}`}
-                description={`Des: ${item.description},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
+                title={item.description}
+                description={`Status: ${item.status},Lat: ${item.location.latitude}, Lng: ${item.location.longitude}`}
               />
             ))}
           </MapView>
