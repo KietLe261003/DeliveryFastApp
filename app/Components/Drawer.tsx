@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import "../Lang/i18n";
 import { useAuth } from "../Context/AuthContext";
 import { UserService } from "../Service/UserService";
+import UserHomeScreen from "../Screen/UserStackScreen/UserHomeScreen";
 const DrawerNav = () => {
   const { user,logout } = useAuth();
   
@@ -78,7 +79,11 @@ const DrawerNav = () => {
         </View>
       )}
     >
-      <Home openSideBar={toggleSidebar}></Home>
+      {user && user.role === "shipper" ? (
+        <Home openSideBar={toggleSidebar}></Home>
+      ) : (
+        <UserHomeScreen openSideBar={toggleSidebar}></UserHomeScreen>
+      )}
     </Drawer>
   );
 };
