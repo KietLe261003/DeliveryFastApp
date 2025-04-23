@@ -8,44 +8,57 @@ import {
   Image,
   Alert,
   StyleSheet,
-  Modal,
   TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HeaderBack } from "@/app/Components/Header";
-
-interface Order {
-  userId: string;
-  senderAddress: string;
-  reciverName: string;
-  reciverPhone: string;
-  receiverAddress: string;
-  note: string;
-  weight: number;
-  deliveryFee: number;
-  images: any;
-  status: string;
-  createAt: Date;
-  updateAt: Date;
-  locationSender: { latitude: number; longitude: number };
-  locationReciver: { latitude: number; longitude: number };
-}
+import { useAuth } from "@/app/Context/AuthContext";
+import { OrderService } from "@/app/Service/OrderService";
+import { Order1 } from "@/app/Type/OrderType";
 
 interface CreateOrderProps {
-  initForm?: Partial<Order>;
+  initForm?: Partial<Order1>;
   getAll?: () => void;
   closeModal?: () => void;
 }
+
+const fetchCoordinatesFromAddress = async (address: string) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        address
+      )}&format=json&limit=1`,
+      {
+        headers: {
+          "User-Agent": "YourAppName/1.0 (your.email@example.com)",
+        },
+      }
+    );
+    const data = await response.json();
+    if (data.length > 0) {
+      return {
+        latitude: parseFloat(data[0].lat),
+        longitude: parseFloat(data[0].lon),
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching coordinates:", error);
+    return null;
+  }
+};
 
 const CreateOrder: React.FC<CreateOrderProps> = ({
   initForm,
   getAll,
   closeModal,
 }) => {
+  const { user } = useAuth();
+  console.log("user", user);
   const navigation = useNavigation<any>();
-  const [order, setOrder] = useState<Partial<Order>>(
+  const [order, setOrder] = useState<Partial<Order1>>(
     initForm || {
       senderAddress: "",
       reciverName: "",
@@ -59,16 +72,8 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
     }
   );
   const [images, setImages] = useState<string[]>(initForm?.images || []);
-  const [modalVisible, setModalVisible] = useState<
-    "sender" | "receiver" | null
-  >(null);
-  const [tempLocation, setTempLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  }>({
-    latitude: 0,
-    longitude: 0,
-  });
+  const [isLoadingSender, setIsLoadingSender] = useState(false);
+  const [isLoadingReceiver, setIsLoadingReceiver] = useState(false);
 
   const pickImage = async () => {
     const permissionResult =
@@ -92,20 +97,60 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
     }
   };
 
-  const handleLocationSelect = () => {
-    if (modalVisible === "sender") {
-      setOrder({ ...order, locationSender: tempLocation });
-    } else if (modalVisible === "receiver") {
-      setOrder({ ...order, locationReciver: tempLocation });
+  const handleSearchCoordinates = async (
+    address: string,
+    field: "sender" | "receiver"
+  ) => {
+    if (!address) {
+      Alert.alert("Error", "Vui lòng nhập địa chỉ trước khi tìm kiếm");
+      return;
     }
-    setModalVisible(null);
+
+    if (field === "sender") setIsLoadingSender(true);
+    else setIsLoadingReceiver(true);
+
+    const coords = await fetchCoordinatesFromAddress(address);
+    if (coords) {
+      setOrder({
+        ...order,
+        [field === "sender" ? "locationSender" : "locationReciver"]: coords,
+      });
+      // Alert.alert(
+      //   "Success",
+      //   `Tọa độ cho địa chỉ ${
+      //     field === "sender" ? "người gửi" : "người nhận"
+      //   } đã được tìm thấy`
+      // );
+      console.log(
+        `Tọa độ cho địa chỉ ${
+          field === "sender" ? "người gửi" : "người nhận"
+        }: ${coords.latitude}, ${coords.longitude}`
+      );
+    } else {
+      setOrder({
+        ...order,
+        [field === "sender" ? "locationSender" : "locationReciver"]: {
+          latitude: 0,
+          longitude: 0,
+        },
+      });
+      Alert.alert(
+        "Error",
+        `Không tìm thấy tọa độ cho địa chỉ ${
+          field === "sender" ? "người gửi" : "người nhận"
+        }`
+      );
+    }
+
+    if (field === "sender") setIsLoadingSender(false);
+    else setIsLoadingReceiver(false);
   };
 
   const handleSubmit = async () => {
     try {
-      const newOrder: Order = {
+      const newOrder: Order1 = {
         ...order,
-        userId: "user-id", // Thay bằng userId thực tế từ context
+        userId: user?.userId || "", // Kiểm tra user.id
         images,
         status: initForm ? order.status || "waiting" : "waiting",
         createAt: initForm ? order.createAt || new Date() : new Date(),
@@ -114,14 +159,46 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
         locationReciver: order.locationReciver || { latitude: 0, longitude: 0 },
         weight: Number(order.weight) || 0,
         deliveryFee: Number(order.deliveryFee) || 0,
-      } as Order;
+      } as Order1;
 
-      // Giả lập gọi API
-      console.log("Order Data:", newOrder);
-      Alert.alert(
-        "Success",
-        initForm ? "Order updated successfully" : "Order created successfully"
-      );
+      // Kiểm tra tọa độ hợp lệ
+      if (
+        newOrder.locationSender.latitude === 0 ||
+        newOrder.locationSender.longitude === 0 ||
+        newOrder.locationReciver.latitude === 0 ||
+        newOrder.locationReciver.longitude === 0
+      ) {
+        Alert.alert(
+          "Error",
+          "Vui lòng tìm kiếm tọa độ hợp lệ cho người gửi và người nhận"
+        );
+        return;
+      }
+
+      // Kiểm tra user tồn tại
+      if (!user) {
+        Alert.alert("Error", "Vui lòng đăng nhập để tạo đơn hàng");
+        return;
+      }
+
+      try {
+        if (initForm && initForm.id) {
+          await OrderService.update(initForm.id, newOrder);
+          Alert.alert("Success", "Order updated successfully");
+        } else {
+          const dataReq = {
+            ...newOrder,
+            userId: user.userId,
+            status: "waiting",
+          };
+          await OrderService.create(dataReq);
+          Alert.alert("Success", "Tạo đơn hàng thành công!");
+          navigation.navigate("MyOrder");
+        }
+      } catch (error) {
+        console.log("Error:", error);
+        Alert.alert("Error", "Không thể lưu đơn hàng, vui lòng thử lại");
+      }
 
       if (getAll) getAll();
       if (closeModal) closeModal();
@@ -138,7 +215,7 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
       });
       setImages([]);
     } catch (err) {
-      Alert.alert("Error", "Something went wrong, please try again");
+      Alert.alert("Error", err as string);
     }
   };
 
@@ -146,45 +223,6 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
     <SafeAreaView style={{ flex: 1 }}>
       <HeaderBack name="Tạo đơn hàng" />
       <ScrollView style={styles.container}>
-        {/* Modal for Location Picker */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={!!modalVisible}
-          onRequestClose={() => setModalVisible(null)}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>
-                Select {modalVisible === "sender" ? "Sender" : "Receiver"}{" "}
-                Location
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Latitude"
-                keyboardType="numeric"
-                value={tempLocation.latitude.toString()}
-                onChangeText={(text) =>
-                  setTempLocation({ ...tempLocation, latitude: Number(text) })
-                }
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Longitude"
-                keyboardType="numeric"
-                value={tempLocation.longitude.toString()}
-                onChangeText={(text) =>
-                  setTempLocation({ ...tempLocation, longitude: Number(text) })
-                }
-              />
-              <View style={styles.modalButtons}>
-                <Button title="Cancel" onPress={() => setModalVisible(null)} />
-                <Button title="Select" onPress={handleLocationSelect} />
-              </View>
-            </View>
-          </View>
-        </Modal>
-
         {/* Form Content */}
         <Text style={styles.sectionTitle}>Create Order</Text>
 
@@ -252,30 +290,30 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Receiver Address</Text>
-            <TextInput
-              style={styles.input}
-              value={order.receiverAddress}
-              onChangeText={(text) =>
-                setOrder({ ...order, receiverAddress: text })
-              }
-              placeholder="Enter receiver address"
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Receiver Location</Text>
-            <TouchableOpacity
-              style={styles.locationButton}
-              onPress={() => setModalVisible("receiver")}
-            >
-              <Text style={styles.locationButtonText}>
-                {order.locationReciver?.latitude &&
-                order.locationReciver?.longitude
-                  ? `(${order.locationReciver.latitude.toFixed(
-                      6
-                    )}, ${order.locationReciver.longitude.toFixed(6)})`
-                  : "Select Location"}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.addressContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={order.receiverAddress}
+                onChangeText={(text) =>
+                  setOrder({ ...order, receiverAddress: text })
+                }
+                placeholder="Enter receiver address"
+              />
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={() =>
+                  handleSearchCoordinates(
+                    order.receiverAddress || "",
+                    "receiver"
+                  )
+                }
+                disabled={isLoadingReceiver}
+              >
+                <Text style={styles.searchButtonText}>
+                  {isLoadingReceiver ? "Đang tìm..." : "Tìm kiếm"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -284,30 +322,27 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
           <Text style={styles.sectionHeader}>Sender Information</Text>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Sender Address</Text>
-            <TextInput
-              style={styles.input}
-              value={order.senderAddress}
-              onChangeText={(text) =>
-                setOrder({ ...order, senderAddress: text })
-              }
-              placeholder="Enter sender address"
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Sender Location</Text>
-            <TouchableOpacity
-              style={styles.locationButton}
-              onPress={() => setModalVisible("sender")}
-            >
-              <Text style={styles.locationButtonText}>
-                {order.locationSender?.latitude &&
-                order.locationSender?.longitude
-                  ? `(${order.locationSender.latitude.toFixed(
-                      6
-                    )}, ${order.locationSender.longitude.toFixed(6)})`
-                  : "Select Location"}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.addressContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={order.senderAddress}
+                onChangeText={(text) =>
+                  setOrder({ ...order, senderAddress: text })
+                }
+                placeholder="Enter sender address"
+              />
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={() =>
+                  handleSearchCoordinates(order.senderAddress || "", "sender")
+                }
+                disabled={isLoadingSender}
+              >
+                <Text style={styles.searchButtonText}>
+                  {isLoadingSender ? "Đang tìm..." : "Tìm kiếm"}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -391,17 +426,6 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: "top",
   },
-  locationButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    padding: 8,
-    backgroundColor: "#fff",
-  },
-  locationButtonText: {
-    fontSize: 14,
-    color: "#333",
-  },
   imageContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -413,28 +437,21 @@ const styles = StyleSheet.create({
     margin: 4,
     borderRadius: 4,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    width: "80%",
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  modalButtons: {
+  addressContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
+    alignItems: "center",
+    gap: 8,
+  },
+  searchButton: {
+    backgroundColor: "#007bff",
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  searchButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
