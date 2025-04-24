@@ -115,12 +115,12 @@ const CreateOrder: React.FC<CreateOrderProps> = ({
         ...order,
         [field === "sender" ? "locationSender" : "locationReciver"]: coords,
       });
-      // Alert.alert(
-      //   "Success",
-      //   `Tọa độ cho địa chỉ ${
-      //     field === "sender" ? "người gửi" : "người nhận"
-      //   } đã được tìm thấy`
-      // );
+      Alert.alert(
+        `Địa chỉ ${
+          field === "sender" ? "người gửi" : "người nhận"
+        } được tìm thấy`,
+        `Địa chỉ: ${address}`
+      );
       console.log(
         `Tọa độ cho địa chỉ ${
           field === "sender" ? "người gửi" : "người nhận"
